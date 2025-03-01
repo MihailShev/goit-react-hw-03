@@ -43,7 +43,9 @@ function App() {
   // SearchBox
   const [filterValue, setFilterValue] = useState("");
 
-  const resetSearchBox = () => setFilterValue("");
+  const handleChange = (newValue) => setFilterValue(newValue);
+
+  const handleReset = () => setFilterValue("");
 
   const filtervisible = contacts.filter(
     (contact) =>
@@ -58,9 +60,9 @@ function App() {
       <ContactForm addContact={addContact} />
 
       <SearchBox
-        onClick={resetSearchBox}
-        state={filterValue}
-        setFilterValue={setFilterValue}
+        onReset={handleReset}
+        value={filterValue}
+        onChange={handleChange}
       />
 
       <ContactList contacts={filtervisible} onClick={deleteContact} />
