@@ -1,82 +1,69 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
-import Options from "../Options/Options";
-import Feedback from "../Feedback/Feedback";
-import Description from "../Description/Description";
-import Notification from "../Notification/Notification";
+import ContactForm from "../ContactForm/ContactForm";
+import SearchBox from "../SearchBox/SearchBox";
+import ContactList from "../ContactList/ContactList";
 
 function App() {
-  const [feedBackValue, setFeedBackValue] = useState(() => {
-    const savedFeedBackValue = window.localStorage.getItem(
-      "saved-feedBackValue"
-    );
+  // ContactList => Contact
+  const [contacts, setContacts] = useState(() => {
+    const saveContacts = localStorage.getItem("save-contacts");
 
-    if (savedFeedBackValue !== null) {
-      console.log(JSON.parse(savedFeedBackValue));
-      return JSON.parse(savedFeedBackValue);
+    if (saveContacts !== null) {
+      const parseContacts = JSON.parse(saveContacts);
+      if (parseContacts.length > 0) {
+        return parseContacts;
+      }
     }
 
-    return {
-      good: 0,
-      neutral: 0,
-      bad: 0,
-    };
+    return [
+      { id: "id-1", name: "Rosie Simpson", number: "459-12-56" },
+      { id: "id-2", name: "Hermione Kline", number: "443-89-12" },
+      { id: "id-3", name: "Eden Clements", number: "645-17-79" },
+      { id: "id-4", name: "Annie Copeland", number: "227-91-26" },
+    ];
   });
 
-  const updateFeedback = (feedbackType) => {
-    if (feedbackType === "reset") {
-      setFeedBackValue({
-        good: 0,
-        neutral: 0,
-        bad: 0,
-      });
-      return;
-    }
-
-    setFeedBackValue({
-      ...feedBackValue,
-      [feedbackType]: feedBackValue[feedbackType] + 1,
+  const addContact = (contact) => {
+    setContacts((prevContact) => {
+      return [...prevContact, contact];
     });
   };
 
-  useEffect(() => {
-    window.localStorage.setItem(
-      "saved-feedBackValue",
-      JSON.stringify(feedBackValue)
+  const deleteContact = (contactId) => {
+    setContacts((prevContact) =>
+      prevContact.filter((contacts) => contacts.id !== contactId)
     );
-  }, [feedBackValue]);
+  };
 
-  const totalFeedback =
-    feedBackValue.good + feedBackValue.neutral + feedBackValue.bad;
+  useEffect(() => {
+    localStorage.setItem("save-contacts", JSON.stringify(contacts));
+  }, [contacts]);
 
-  const positiveFeedback = Math.round(
-    (feedBackValue.good / totalFeedback) * 100
+  // SearchBox
+  const [filterValue, setFilterValue] = useState("");
+
+  const resetSearchBox = () => setFilterValue("");
+
+  const filtervisible = contacts.filter(
+    (contact) =>
+      contact.name.toLowerCase().includes(filterValue.toLowerCase()) ||
+      contact.number.includes(filterValue)
   );
 
-  console.log(feedBackValue);
   return (
     <>
-      <Description
-        title="Sip Happens Café"
-        description="Please leave your feedback about our service by selecting one of the options below."
+      <h1>Phonebook</h1>
+
+      <ContactForm addContact={addContact} />
+
+      <SearchBox
+        onClick={resetSearchBox}
+        state={filterValue}
+        setFilterValue={setFilterValue}
       />
 
-      <Options handle={updateFeedback} feedbackTotalValue={totalFeedback} />
-
-      {totalFeedback ? (
-        <Feedback
-          feedbackGood="Good"
-          feedbackNeutral="Neutral"
-          feedbackBad="Bad"
-          feedbackTotal="Total"
-          feedbackPositive="Positive"
-          feedbackTotalValue={totalFeedback}
-          feedBackValue={feedBackValue}
-          positiveFeedback={positiveFeedback}
-        />
-      ) : (
-        <Notification textNotification="No feedback yet" />
-      )}
+      <ContactList contacts={filtervisible} onClick={deleteContact} />
     </>
   );
 }
